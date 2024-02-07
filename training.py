@@ -4,7 +4,7 @@ from nnfs.datasets import spiral_data
 
 nnfs.init()
 
-from neural_network import Layer_Dense, Activation_ReLU, Activation_Softmax_Loss_CategoricalCrossentropy, Optimizer_Adam
+from neural_network import Layer_Dense, Layer_Dropout, Activation_ReLU, Activation_Softmax_Loss_CategoricalCrossentropy, Optimizer_Adam
 # ===============================Creating objects=====================================
 # Create dataset
 X, y = spiral_data(samples=100, classes=3)
@@ -14,6 +14,9 @@ dense1 = Layer_Dense(2, 64, weight_regularizer_l2=5e-4, bias_regularizer_l2=5e-4
 
 # Create ReLU activation
 activation1 = Activation_ReLU()
+
+# Create dropout layer
+dropout1 = Layer_Dropout(0.1)
 
 # Create second Dense layer
 dense2 = Layer_Dense(64, 3)
@@ -35,8 +38,11 @@ for epoch in range(10001):
     # Perform a forward pass of activation ReLU
     activation1.forward(dense1.output)
 
+    # Perform a forward pass of dropout layer
+    dropout1.forward(activation1.output)
+
     # Perform a forward pass of second layer
-    dense2.forward(activation1.output)
+    dense2.forward(dropout1.output)
 
     # Data loss
     data_loss = loss_activation.forward(dense2.output, y)
@@ -63,6 +69,7 @@ for epoch in range(10001):
     # ======================== Backward pass ===========================================
     loss_activation.backward(loss_activation.output, y)
     dense2.backward(loss_activation.dinputs)
+    dropout1.backward(dense2.dinputs)
     activation1.backward(dense2.dinputs)
     dense1.backward(activation1.dinputs)
     # ============================Update weights and biases========================================
@@ -70,3 +77,20 @@ for epoch in range(10001):
     optimizer.update_params(dense1)
     optimizer.update_params(dense2)
     optimizer.post_update_params()
+# =================================Validation==================================================
+# Create test dataset
+X_test, y_test = spiral_data(samples=100, classes=3)
+
+# Forward pass
+dense1.forward(X_test)
+activation1.forward(dense1.output)
+dense2.forward(activation1.output)
+loss = loss_activation.forward(dense2.output, y_test)
+
+# Accuracy
+predictions = np.argmax(loss_activation.output, axis=1)
+if len(y_test.shape) == 2:
+    y_test = np.argmax(y_test, axis=1)
+accuracy = np.mean(predictions==y_test)
+
+print(f'Validation, acc: {accuracy:.3f}, loss: {loss:.3f}')
