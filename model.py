@@ -1,3 +1,6 @@
+import matplotlib.pyplot as plt
+import time
+
 from activation_functions import Activation_Softmax, Activation_Softmax_Loss_CategoricalCrossentropy
 from layers import Layer_Input
 from loss_functions import Loss_CategoricalCrossentropy
@@ -16,8 +19,14 @@ class Model:
         self.accuracy = accuracy
 
     def train(self, X, y, *, epochs=1, print_every=1, validation_data=None):
+        start_time = time.time()
+
         # Initialize accuracy object
         self.accuracy.init(y)
+        self.accuracy_vector = []
+        self.loss_vector = []
+        self.learning_rate_vector = []
+
         for epoch in range(1, epochs + 1):
             # Perform forward pass
             output = self.forward(X, training=True)
@@ -25,10 +34,12 @@ class Model:
             # Calculate loss
             data_loss, regularization_loss = self.loss.calculate(output, y, include_regularization=True)
             loss = data_loss + regularization_loss
+            self.loss_vector.append(loss)
 
             # Get predictions and compute accuracy
             predictions = self.output_layer_activation.predictions(output)
             accuracy = self.accuracy.calculate(predictions, y)
+            self.accuracy_vector.append(accuracy)
 
             # Perform backward pass
             self.backward(output, y)
@@ -38,6 +49,7 @@ class Model:
             for layer in self.trainable_layers:
                 self.optimizer.update_params(layer)
             self.optimizer.post_update_params()
+            self.learning_rate_vector.append(self.optimizer.current_learning_rate)
 
             # Print summary
             if not epoch % print_every:
@@ -66,6 +78,9 @@ class Model:
             print(f'validation, ' +
                   f'acc: {accuracy:.3f}, ' +
                   f'loss: {loss:.3f}')
+
+        end_time = time.time()
+        self.training_time = end_time - start_time
 
     def finalize(self):
         self.input_layer = Layer_Input()
@@ -106,3 +121,29 @@ class Model:
         # Call backward for layers
         for layer in reversed(self.layers):
             layer.backward(layer.next.dinputs)
+
+    def plot_training(self):
+        # Create a figure and axes for subplots
+        fig, axs = plt.subplots(1, 3, figsize=(12, 4))
+
+        # Plotting each subplot
+        axs[0].plot(self.accuracy_vector)
+        axs[0].set_xlabel('Epoch')
+        axs[0].set_ylabel('Accuracy')
+
+        axs[1].plot(self.loss_vector)
+        axs[1].set_xlabel('Epoch')
+        axs[1].set_ylabel('Loss')
+
+        axs[2].plot(self.learning_rate_vector)
+        axs[2].set_xlabel('Epoch')
+        axs[2].set_ylabel('Learning rate')
+
+        # Adding a common title for all subplots
+        fig.suptitle(f'Training dynamics, training time = {self.training_time:.2f} s')
+
+        # Adjust layout
+        plt.tight_layout()
+
+        # Display the plot
+        plt.show()

@@ -5,7 +5,7 @@ from loss_functions import Loss_CategoricalCrossentropy
 class Activation_ReLU:
 
     # Forward pass
-    def forward(self, inputs):
+    def forward(self, inputs, training):
         self.inputs = inputs
         self.output = np.maximum(0, inputs)
 
@@ -23,7 +23,7 @@ class Activation_ReLU:
 class Activation_Sigmoid:
 
     # Forward pass
-    def forward(self, inputs):
+    def forward(self, inputs, training):
         self.inputs = inputs
         self.output = 1 / (1 + np.exp(-inputs))
 
@@ -38,7 +38,7 @@ class Activation_Sigmoid:
 class Activation_Softmax:
 
     # Forward pass
-    def forward(self, inputs):
+    def forward(self, inputs, training):
         # Remember input values
         self.inputs = inputs
 
@@ -72,7 +72,7 @@ class Activation_Softmax:
 class Activation_Linear:
 
     # Forward pass
-    def forward(self, inputs):
+    def forward(self, inputs, training):
         self.inputs = inputs
         self.output = inputs
 
@@ -85,20 +85,6 @@ class Activation_Linear:
 
 
 class Activation_Softmax_Loss_CategoricalCrossentropy():
-
-    # Creates activation and loss objects
-    def __init__(self):
-        self.activation = Activation_Softmax()
-        self.loss = Loss_CategoricalCrossentropy()
-
-    # Forward pass
-    def forward(self, inputs, y_true):
-        # Output layer's activation function
-        self.activation.forward(inputs)
-        # Set the output
-        self.output = self.activation.output
-        # Calculate and return loss value
-        return self.loss.calculate(self.output, y_true)
 
     # Backward pass
     def backward(self, dvalues, y_true):

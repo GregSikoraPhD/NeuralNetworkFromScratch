@@ -2,7 +2,7 @@ import numpy as np
 
 
 class Layer_Input:
-    def forward(self, inputs):
+    def forward(self, inputs, training):
         self.output = inputs
 
 
@@ -20,7 +20,7 @@ class Layer_Dense:
         self.bias_regularizer_l2 = bias_regularizer_l2
 
     # Froward pass
-    def forward(self, inputs):
+    def forward(self, inputs, training):
         self.output = np.dot(inputs, self.weights) + self.biases
         self.inputs = inputs
 
