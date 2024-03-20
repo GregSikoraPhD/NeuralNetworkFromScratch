@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+import numpy as np
 import time
 
 from activation_functions import Activation_Softmax, Activation_Softmax_Loss_CategoricalCrossentropy
@@ -60,6 +61,9 @@ class Model:
                       f'reg_loss: {regularization_loss:.3f}), ' +
                       f'lr: {self.optimizer.current_learning_rate}')
 
+        end_time = time.time()
+        self.training_time = end_time - start_time
+
         # If there is validation data
         if validation_data is not None:
             X_val, y_val = validation_data
@@ -68,19 +72,16 @@ class Model:
             output = self.forward(X_val, training=False)
 
             # Calculate the loss
-            loss = self.loss.calculate(output, y_val)
+            self.loss_val = self.loss.calculate(output, y_val)
 
             # Get prediction and compute accuracy
-            predictions = self.output_layer_activation.predictions(output)
-            accuracy = self.accuracy.calculate(predictions, y_val)
+            self.predictions_val= self.output_layer_activation.predictions(output)
+            self.accuracy_val = self.accuracy.calculate(self.predictions_val, y_val)
 
             # Print summary
             print(f'validation, ' +
-                  f'acc: {accuracy:.3f}, ' +
-                  f'loss: {loss:.3f}')
-
-        end_time = time.time()
-        self.training_time = end_time - start_time
+                  f'acc: {self.accuracy_val:.3f}, ' +
+                  f'loss: {self.loss_val:.3f}')
 
     def finalize(self):
         self.input_layer = Layer_Input()

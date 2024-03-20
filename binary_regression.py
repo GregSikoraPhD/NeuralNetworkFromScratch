@@ -35,5 +35,5 @@ model.set(loss=Loss_BinaryCrossentropy(),
 model.finalize()
 
 # Train the model
-model.train(X, y, validation_data=(X_test, y_test), epochs=5000, print_every=100)
+model.train(X, y, validation_data=(X_test, y_test), epochs=1000, print_every=100)
 model.plot_training()
